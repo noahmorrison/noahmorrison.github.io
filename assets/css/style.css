@@ -51,6 +51,9 @@ li :hover {
   display: none;
   margin: 20px;
   padding: 20px;
-  background-color: #eee; }
+  background-color: #eee;
+  border-style: solid;
+  border-color: #888;
+  border-width: 0 5px 4px 2px; }
   #pages > * {
     display: none; }
