@@ -22,3 +22,7 @@ window.addEventListener('hashchange', function() {
         document.getElementById('pages').style.setProperty('display', 'none');
     }
 });
+
+window.addEventListener('load', function() {
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+});
