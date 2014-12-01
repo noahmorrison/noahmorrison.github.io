@@ -9,6 +9,14 @@ a {
   outline: 0;
   color: #777; }
 
+blockquote {
+  font-size: 80%;
+  margin-left: 2px;
+  padding-left: 2px;
+  border-left-style: solid;
+  border-left-color: #c55;
+  border-left-width: 2px; }
+
 #navbar {
   background-color: #555;
   height: 30px;
