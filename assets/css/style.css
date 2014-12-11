@@ -61,3 +61,6 @@ blockquote {
 
 div[name=pokemon] img {
   width: 200px; }
+
+.pokemon {
+  display: inline; }
