@@ -52,8 +52,12 @@ blockquote {
     padding: 20px; }
 
 #content {
-  margin: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
   padding: 20px;
+  width: 900px;
   background-color: #eee;
   border-style: solid;
   border-color: #888;
