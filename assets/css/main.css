@@ -1,0 +1,73 @@
+html {
+  background: #bbb;
+}
+body {
+  margin: 0;
+}
+a {
+  text-decoration: none;
+  outline: 0;
+  color: #777;
+}
+blockquote {
+  font-size: 80%;
+  margin-left: 2px;
+  padding-left: 2px;
+  border-left: 2px solid #c55;
+}
+#navbar {
+  background-color: #555;
+  height: 30px;
+  border-bottom: 5px solid #c55;
+}
+#navbar > .name {
+  display: inline;
+}
+#navbar > .name > .first {
+  display: inline;
+  color: #5c5;
+}
+#navbar > .name > .last {
+  display: inline;
+  color: #aaa;
+}
+#navbar > .pages {
+  display: inline;
+  padding-left: 20px;
+}
+#navbar > .pages > a {
+  color: #bbb;
+  font-weight: bold;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.center_msg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+.center_msg > .msg {
+  position: relative;
+  left: -50%;
+  margin-top: -25%;
+  background: #ddd;
+  padding: 20px;
+}
+#content {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 20px;
+  width: 900px;
+  background: #eee;
+  border-style: solid;
+  border-color: #888;
+  border-width: 0 5px 4px 2px;
+}
+.pokemon {
+  display: inline;
+}
+.pokemon > img {
+  width: 200px;
+}
