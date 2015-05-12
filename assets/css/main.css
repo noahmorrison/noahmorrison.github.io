@@ -1,5 +1,6 @@
 html {
-  background: #bbb;
+  background-image: url("/assets/img/bg.gif");
+  background-repeat: repeat;
 }
 body {
   margin: 0;
@@ -7,7 +8,7 @@ body {
 a {
   text-decoration: none;
   outline: 0;
-  color: #777;
+  color: #d48600;
 }
 blockquote {
   font-size: 80%;
@@ -16,7 +17,7 @@ blockquote {
   border-left: 2px solid #c55;
 }
 #navbar {
-  background-color: #555;
+  background-color: #eddcb0;
   height: 30px;
   border-bottom: 5px solid #c55;
 }
@@ -25,18 +26,17 @@ blockquote {
 }
 #navbar > .name > .first {
   display: inline;
-  color: #5c5;
+  color: #f75000;
 }
 #navbar > .name > .last {
   display: inline;
-  color: #aaa;
+  color: #000;
 }
 #navbar > .pages {
   display: inline;
   padding-left: 20px;
 }
 #navbar > .pages > a {
-  color: #bbb;
   font-weight: bold;
   padding-left: 10px;
   padding-right: 10px;
@@ -60,10 +60,12 @@ blockquote {
   margin-bottom: 20px;
   padding: 20px;
   width: 900px;
-  background: #eee;
-  border-style: solid;
-  border-color: #888;
-  border-width: 0 5px 4px 2px;
+  background: rgba(234,224,189,0.733);
+  color: #430;
+}
+#footer {
+  float: right;
+  margin-right: 20px;
 }
 .pokemon {
   display: inline;
