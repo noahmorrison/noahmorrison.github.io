@@ -1,0 +1,12 @@
+title: Noah Morrison
+email: noah@morrison.ph
+description: >- # this means to ignore newlines until "baseurl:"
+  Personal website for Noah Morrison
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://noah.morrison.ph" # the base hostname & protocol for your site, e.g. http://example.com
+github_username:  noahmorrison
+
+# Build settings
+theme: minima
+plugins:
+  - jekyll-feed

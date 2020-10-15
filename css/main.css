@@ -1,3 +1,28 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.content {
+    margin: 0 auto;
+    width: 80%;
+    height: calc(100% - 0.5in - 0.1in - 2%);
+}
+
 .logo {
     width: 1in;
+}
+
+.header {
+    display: block;
+    height: 0.5in;
+    padding: 0.1in;
+    background: #eeeeee;
+}
+
+.header a {
+    padding-right: 0.25in;
+    text-decoration: none;
+    color: black;
 }
