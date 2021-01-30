@@ -26,3 +26,11 @@ html, body {
     text-decoration: none;
     color: black;
 }
+
+.gpg {
+    width: 50%;
+    margin: 0 auto;
+    text-align: left;
+    white-space: break-spaces;
+    font-family: monospace;
+}
