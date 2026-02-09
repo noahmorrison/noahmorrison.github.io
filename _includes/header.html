@@ -3,7 +3,17 @@
         <img class="logo" src="./assets/logo.svg" />
     </a>
 
-    <a href="/gpg">
-        gpg
+    <a href="/otos">
+        ph/otos
     </a>
 </span>
+
+<style>
+    a.active {
+        font-weight: bold;
+    }
+</style>
+
+<script>
+    [...document.getElementsByTagName("a")].forEach(a => { if (a == document.URL) { a.classList.add("active"); } })
+</script>

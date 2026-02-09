@@ -2,6 +2,8 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
+    background: #1d2021;
+    color: #fbf1c7;
 }
 
 .content {
@@ -12,19 +14,20 @@ html, body {
 
 .logo {
     width: 1in;
+    filter: invert(87%) sepia(18%) saturate(456%) hue-rotate(349deg) brightness(109%) contrast(97%);
 }
 
 .header {
     display: block;
     height: 0.5in;
     padding: 0.1in;
-    background: #eeeeee;
+    background: #32302f;
 }
 
 .header a {
     padding-right: 0.25in;
     text-decoration: none;
-    color: black;
+    color: #fbf1c7;
 }
 
 .gpg {
