@@ -19,10 +19,13 @@
     justify-content: flex-start;
 }
 
+/* Photo Item */
 .photo-item {
     flex: 0 0 calc(33.333% - 14px);
     aspect-ratio: 1 / 1;
     position: relative;
+    overflow: hidden;
+    border-radius: 4px;
 }
 
 .photo-item img {
@@ -30,24 +33,102 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     cursor: pointer;
-
-    position: absolute;
-    top: 0;
-    left: 0;
+    transition: transform 0.3s ease;
 }
 
-.photo-item:hover img {
-    z-index: 100;
-    width: 40vw;
-    height: auto;
-    min-height: 100%;
+.photo-item:active img {
+    transform: scale(0.96);
+}
+
+/* Lightbox */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.lightbox-overlay.active {
+    display: flex;
+}
+
+.lightbox-overlay.visible {
+    opacity: 1;
+}
+
+.lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
     object-fit: contain;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    transform: scale(0.95);
+    transition: transform 0.25s ease;
+}
 
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+.lightbox-overlay.visible img {
+    transform: scale(1);
+}
 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: #fbf1c7;
+    font-size: 2.5em;
+    line-height: 1;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.lightbox-close:hover,
+.lightbox-close:active {
+    opacity: 1;
+}
+
+/* Gallery Nav */
+#gallery-nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.gallery-nav-link {
+    padding: 6px 14px;
+    border-radius: 4px;
+    background: #32302f;
+    color: #d5c4a1;
+    text-decoration: none;
+    font-size: 0.9em;
+    text-transform: capitalize;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.gallery-nav-link:hover {
+    background: #3c3836;
+    color: #fbf1c7;
+    border-color: #504945;
+}
+
+.gallery-nav-link.active {
+    background: #fabd2f;
+    color: #1d2021;
+    font-weight: bold;
 }
