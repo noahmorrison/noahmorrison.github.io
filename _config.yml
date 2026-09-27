@@ -8,8 +8,6 @@ github_username:  noahmorrison
 
 # Build settings
 theme: minima
-plugins:
-  - jekyll-feed
 
 exclude:
   - Gemfile
