@@ -18,25 +18,30 @@ EXTRA = [f"Archive%20{n}/" for n in range(1, 11)]
 LISTINGS = {
     "/": [*EXTRA, "Solo/", "Big%20Trip/"],
     "/Big%20Trip/": [
-        "a.jpg", "a-thumbnail.jpg", "a-square.jpg",
-        "b.jpg", "b-thumbnail.jpg",
-        "c.jpg",
+        "a.jpg", "a-thumbnail.jpg", "a-large.jpg",
+        "b.jpg", "b-thumbnail.jpg", "b-large.jpg",
+        "c.jpg",  # published before large copies existed
     ],
     "/Solo/": ["only.jpg"],
     **{f"/{d}": ["x.jpg"] for d in EXTRA},
 }
+# File sizes as autoindex shows them; the rest are listed without one
+SIZES = {"b.jpg": "16M"}
 COLORS = ["#cc241d", "#98971a", "#458588", "#b16286", "#d79921"]
 
 
 def listing_html(links):
-    items = "".join(f'<a href="{href}">{href}</a>\n' for href in ["../", *links])
+    items = "".join(
+        f'<a href="{href}">{href}</a>{" " * 20}27-Apr-2026 21:27{" " * 5}{SIZES.get(href, "-")}\n'
+        for href in ["../", *links]
+    )
     return f"<html><body><pre>{items}</pre></body></html>"
 
 
-def photo_svg(name):
+def photo_svg(name, width=800, height=600):
     color = COLORS[sum(map(ord, name)) % len(COLORS)]
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">'
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">'
         f'<rect width="100%" height="100%" fill="{color}"/>'
         '<text x="50%" y="50%" font-size="80" text-anchor="middle" '
         f'fill="white" font-family="sans-serif">{name}</text></svg>'
@@ -75,9 +80,12 @@ def main():
         page.route(PHOTO_HOST, stub_photo_server)
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
+        requested = []
+        page.on("request", lambda r: requested.append(r.url))
 
         overlay = page.locator("#lightbox-overlay")
         img = page.locator("#lightbox-img")
+        original = page.locator("#lightbox-original")
         items = page.locator(".photo-item")
 
         def expect_photo(name):
@@ -110,7 +118,7 @@ def main():
         def click_opens_lightbox():
             items.nth(1).click()
             expect(overlay).to_have_class("lightbox-overlay active visible")
-            expect_photo("b.jpg")
+            expect_photo("b-large.jpg")
             expect(page.locator("body")).to_have_class("lightbox-open")
             page.wait_for_timeout(400)  # let the fade-in finish
             page.screenshot(path=f"{RESULTS}/lightbox.png")
@@ -119,16 +127,16 @@ def main():
             page.keyboard.press("ArrowRight")
             expect_photo("c.jpg")
             page.keyboard.press("ArrowLeft")
-            expect_photo("b.jpg")
+            expect_photo("b-large.jpg")
             page.keyboard.press("ArrowDown")
             expect_photo("c.jpg")
             page.keyboard.press("ArrowUp")
-            expect_photo("b.jpg")
+            expect_photo("b-large.jpg")
 
         def wraps_around():
             page.keyboard.press("ArrowRight")
             page.keyboard.press("ArrowRight")
-            expect_photo("a.jpg")
+            expect_photo("a-large.jpg")
             page.keyboard.press("ArrowLeft")
             expect_photo("c.jpg")
 
@@ -137,7 +145,7 @@ def main():
             wheel(120)
             wheel(120)
             wheel(120)
-            expect_photo("a.jpg")
+            expect_photo("a-large.jpg")
             page.wait_for_timeout(400)
             wheel(-120)
             expect_photo("c.jpg")
@@ -147,18 +155,38 @@ def main():
 
         def arrow_buttons():
             page.click("#lightbox-next")
-            expect_photo("a.jpg")
+            expect_photo("a-large.jpg")
             expect(overlay).to_have_class("lightbox-overlay active visible")
             page.click("#lightbox-prev")
             expect_photo("c.jpg")
 
         def swipe_gestures():
             swipe(-150)
-            expect_photo("a.jpg")
+            expect_photo("a-large.jpg")
             swipe(150)
             expect_photo("c.jpg")
             swipe(-20)  # too short to count
             expect_photo("c.jpg")
+
+        def full_size_link():
+            expect_photo("c.jpg")
+            expect(original).to_be_hidden()  # already showing the original
+            page.keyboard.press("ArrowLeft")
+            expect_photo("b-large.jpg")
+            expect(original).to_be_visible()
+            expect(original).to_have_attribute("href", f"{PHOTO_HOST}/Big%20Trip/b.jpg")
+            expect(original).to_have_attribute("target", "_blank")
+            expect(original).to_have_text("Full size (16 MB)")
+            page.keyboard.press("ArrowLeft")
+            expect_photo("a-large.jpg")
+            expect(original).to_have_text("Full size")
+            page.keyboard.press("ArrowRight")
+            page.keyboard.press("ArrowRight")
+            expect_photo("c.jpg")
+
+        def originals_not_downloaded():
+            fetched = [u for u in requested if u.endswith(("/a.jpg", "/b.jpg"))]
+            assert not fetched, fetched
 
         def clicking_image_keeps_open():
             img.click()
@@ -173,7 +201,7 @@ def main():
 
         def escape_closes():
             items.nth(0).click()
-            expect_photo("a.jpg")
+            expect_photo("a-large.jpg")
             page.keyboard.press("Escape")
             expect(overlay).to_be_hidden()
 
@@ -230,13 +258,14 @@ def main():
             expect(items).to_have_count(3)
 
         def switcher_stays_in_view():
-            page.evaluate("document.body.style.paddingBottom = '3000px'")
+            # Pad the gallery, not body: the bar only sticks within its own container
+            page.evaluate("document.getElementById('galleries').style.paddingBottom = '3000px'")
             page.mouse.wheel(0, 2000)
             page.wait_for_timeout(300)
             assert page.evaluate("window.scrollY") > 0
             box = switcher.bounding_box()
             assert 0 <= box["y"] < 100, f"switcher scrolled away (y={box['y']})"
-            page.evaluate("document.body.style.paddingBottom = ''; window.scrollTo(0, 0)")
+            page.evaluate("document.getElementById('galleries').style.paddingBottom = ''; window.scrollTo(0, 0)")
 
         def switching_gallery_resets_photos():
             switcher.click()
@@ -268,11 +297,11 @@ def main():
             page.screenshot(path=f"{RESULTS}/menu-mobile.png")
             page.keyboard.press("Escape")
             items.nth(0).click()
-            expect_photo("a.jpg")
+            expect_photo("a-large.jpg")
             page.wait_for_timeout(400)  # let the fade-in finish
             page.screenshot(path=f"{RESULTS}/lightbox-mobile.png")
             # Controls must be tappable, not covered by a full-width photo
-            for control in ["lightbox-prev", "lightbox-next", "lightbox-close"]:
+            for control in ["lightbox-prev", "lightbox-next", "lightbox-close", "lightbox-original"]:
                 on_top = page.evaluate(
                     """id => {
                         const r = document.getElementById(id).getBoundingClientRect();
@@ -283,6 +312,35 @@ def main():
                 assert on_top == control, f"#{control} is covered by #{on_top}"
             page.click("#lightbox-prev")
             expect_photo("c.jpg")
+
+        def full_size_link_clear_of_portrait_photo():
+            page.keyboard.press("Escape")
+            portrait = f"{PHOTO_HOST}/Big%20Trip/b-large.jpg"
+            page.route(portrait, lambda route: route.fulfill(
+                body=photo_svg("b-large.jpg", 600, 900), content_type="image/svg+xml",
+                headers={"Access-Control-Allow-Origin": "*"}))
+            # iPad portrait / landscape, phone, laptop
+            for width, height in [(820, 1180), (1180, 820), (390, 844), (1280, 800)]:
+                page.set_viewport_size({"width": width, "height": height})
+                page.goto(f"{BASE_URL}/otos#Big-Trip")
+                items.nth(1).click()
+                expect_photo("b-large.jpg")
+                expect(original).to_be_visible()
+                page.wait_for_function(
+                    "() => document.getElementById('lightbox-img').naturalHeight === 900")
+                page.wait_for_timeout(400)  # let the zoom-in finish
+                photo, link = img.bounding_box(), original.bounding_box()
+                assert photo["y"] + photo["height"] <= link["y"], (
+                    f"{width}x{height}: photo bottom {photo['y'] + photo['height']:.0f} "
+                    f"overlaps full size link at {link['y']:.0f}")
+                page.keyboard.press("Escape")
+            page.set_viewport_size({"width": 1180, "height": 820})
+            page.goto(f"{BASE_URL}/otos#Big-Trip")
+            items.nth(1).click()
+            page.wait_for_timeout(400)
+            page.screenshot(path=f"{RESULTS}/lightbox-portrait.png")
+            page.keyboard.press("Escape")
+            page.unroute(portrait)
 
         def no_js_errors():
             assert not errors, errors
@@ -302,12 +360,15 @@ def main():
             ("page doesn't scroll behind lightbox", page_does_not_scroll_behind),
             ("prev/next buttons", arrow_buttons),
             ("swipe gestures", swipe_gestures),
+            ("full size link", full_size_link),
+            ("originals aren't downloaded", originals_not_downloaded),
             ("clicking the image keeps it open", clicking_image_keeps_open),
             ("clicking the background closes", background_click_closes),
             ("escape closes", escape_closes),
             ("arrow keys ignored when closed", keys_ignored_when_closed),
             ("switching gallery resets photos", switching_gallery_resets_photos),
             ("mobile layout", mobile_layout),
+            ("full size link clear of portrait photo", full_size_link_clear_of_portrait_photo),
             ("no JS errors", no_js_errors),
         ]:
             check(name, fn)

@@ -1,16 +1,20 @@
 const baseUrl = 'https://photos.norwich.morrison.ph';
 
+// Returns the listing's entries as { href, size }; nginx's autoindex prints each
+// file's size (e.g. "16M") after its link
 async function fetchDirectory(path = '') {
-    const response = await fetch(`${baseUrl}${path}`);
+    // Listings change whenever photos are published, so don't trust a cached copy
+    const response = await fetch(`${baseUrl}${path}`, { cache: 'no-cache' });
     const html = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    const links = Array.from(doc.querySelectorAll('a'))
-        .map(a => a.getAttribute('href'))
-        .filter(href => href && href !== '../' && !href.startsWith('/'));
-
-    return links;
+    return Array.from(doc.querySelectorAll('a'))
+        .map(a => {
+            const size = (a.nextSibling?.textContent || '').trim().match(/(\d+(?:\.\d+)?)([KMG])$/);
+            return { href: a.getAttribute('href'), size: size ? `${size[1]} ${size[2]}B` : '' };
+        })
+        .filter(({ href }) => href && href !== '../' && !href.startsWith('/'));
 }
 
 function slugify(name) {
@@ -142,12 +146,14 @@ async function loadGallery(dir, categoryName) {
     const galleries = document.getElementById('galleries');
     galleries.innerHTML = '';
 
-    const photos = await fetchDirectory(`/${dir}`);
-    if (photos.length === 0) {
+    const entries = await fetchDirectory(`/${dir}`);
+    if (entries.length === 0) {
         return;
     }
 
-    const fullPhotos = photos.filter(f => !f.includes('-thumbnail.') && !f.includes('-square.'));
+    const photos = entries.map(e => e.href);
+    const sizes = Object.fromEntries(entries.map(e => [e.href, e.size]));
+    const fullPhotos = photos.filter(f => !f.includes('-thumbnail.') && !f.includes('-large.'));
     const thumbnails = photos.filter(f => f.includes('-thumbnail.'));
 
     const section = document.createElement('div');
@@ -165,7 +171,10 @@ async function loadGallery(dir, categoryName) {
         const photoName = photo.substring(0, photo.lastIndexOf("."));
 
         const fullUrl = `${baseUrl}/${dir}${photo}`;
-        var url = fullUrl;
+        // Lightbox-sized copy; older galleries may not have one yet
+        const large = `${photoName}-large.jpg`;
+        const largeUrl = photos.includes(large) ? `${baseUrl}/${dir}${large}` : null;
+        var url = largeUrl || fullUrl;
         var thumbnail = thumbnails.filter(t => t.startsWith(`${photoName}-thumbnail`))[0];
         if (typeof thumbnail !== 'undefined') {
             url = `${baseUrl}/${dir}${thumbnail}`;
@@ -176,7 +185,13 @@ async function loadGallery(dir, categoryName) {
         img.alt = `${categoryName} photo`;
 
         const index = lightboxPhotos.length;
-        lightboxPhotos.push({ url: fullUrl, alt: `${categoryName} photo` });
+        lightboxPhotos.push({
+            url: largeUrl || fullUrl,
+            // Only offered when the lightbox isn't already showing the original
+            originalUrl: largeUrl ? fullUrl : null,
+            originalSize: sizes[photo],
+            alt: `${categoryName} photo`,
+        });
 
         item.addEventListener('click', () => {
             openLightbox(index);
@@ -217,7 +232,7 @@ async function loadGalleries() {
     initLightbox();
     initMenu();
 
-    directories = (await fetchDirectory('/')).reverse();
+    directories = (await fetchDirectory('/')).map(e => e.href).reverse();
     categoryNames = directories.map(dir => decodeURI(dir.replace(/\/$/, '')));
 
     renderNav();
@@ -226,7 +241,7 @@ async function loadGalleries() {
     window.addEventListener('hashchange', showFromHash);
 }
 
-let lightboxOverlay, lightboxImg;
+let lightboxOverlay, lightboxImg, lightboxOriginal;
 let lightboxPhotos = [];
 let lightboxIndex = 0;
 
@@ -237,6 +252,7 @@ function isLightboxOpen() {
 function initLightbox() {
     lightboxOverlay = document.getElementById('lightbox-overlay');
     lightboxImg = document.getElementById('lightbox-img');
+    lightboxOriginal = document.getElementById('lightbox-original');
     const closeBtn = document.getElementById('lightbox-close');
     const prevBtn = document.getElementById('lightbox-prev');
     const nextBtn = document.getElementById('lightbox-next');
@@ -300,6 +316,11 @@ function showLightboxPhoto(index) {
     const photo = lightboxPhotos[lightboxIndex];
     lightboxImg.src = photo.url;
     lightboxImg.alt = photo.alt;
+
+    lightboxOriginal.hidden = !photo.originalUrl;
+    lightboxOriginal.href = photo.originalUrl || '';
+    lightboxOriginal.textContent = photo.originalSize
+        ? `Full size (${photo.originalSize})` : 'Full size';
 
     // Preload neighbours so scrolling feels instant
     [lightboxIndex - 1, lightboxIndex + 1].forEach(i => {
