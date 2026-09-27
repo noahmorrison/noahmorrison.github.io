@@ -24,6 +24,8 @@ LISTINGS = {
     ],
     "/Solo/": ["only.jpg"],
     **{f"/{d}": ["x.jpg"] for d in EXTRA},
+    # A few more galleries with thumbnails, for the home page's photo strip
+    **{f"/{d}": ["x.jpg", "x-thumbnail.jpg"] for d in EXTRA[:3]},
 }
 # File sizes as autoindex shows them; the rest are listed without one
 SIZES = {"b.jpg": "16M"}
@@ -342,6 +344,46 @@ def main():
             page.keyboard.press("Escape")
             page.unroute(portrait)
 
+        def home_page():
+            page.set_viewport_size({"width": 1280, "height": 800})
+            page.goto(f"{BASE_URL}/")
+            expect(page).to_have_title("Noah Morrison")
+            og_image = page.locator('meta[property="og:image"]').get_attribute("content")
+            # jekyll serve swaps site.url for its own address, so only check the path
+            assert og_image.endswith("/assets/og-image.jpg"), og_image
+            response = page.request.get(f"{BASE_URL}/assets/og-image.jpg")
+            assert response.ok and response.headers["content-type"] == "image/jpeg", response.status
+            expect(page.locator(".social a")).to_have_count(4)
+
+            # 5 thumbnails across 4 galleries; the order is random, so check
+            # each one links to the gallery it came from
+            links = page.locator("#photo-strip a")
+            expect(links).to_have_count(5)
+            page.screenshot(path=f"{RESULTS}/home.png", full_page=True)
+            shown = links.evaluate_all(
+                "as => as.map(a => [a.getAttribute('href'), a.querySelector('img').src])")
+            for href, src in shown:
+                gallery = src[len(PHOTO_HOST) + 1:].rsplit("/", 1)[0]
+                assert "-thumbnail." in src, src  # never originals
+                assert href == f"/otos#{gallery.replace('%20', '-')}", (href, src)
+            assert len({href for href, _ in shown}) == 4, shown
+
+            archive = page.locator('#photo-strip a[href="/otos#Archive-2"]')
+            archive.click()
+            expect(page).to_have_url(f"{BASE_URL}/otos#Archive-2")
+            expect(page).to_have_title("ph/otos · Noah Morrison")
+            expect(page.locator("#gallery-title")).to_have_text("Archive 2")
+
+        def home_page_without_photo_server():
+            unreachable = lambda route: route.abort()
+            page.route(f"{PHOTO_HOST}/**", unreachable)
+            page.route(PHOTO_HOST, unreachable)
+            page.goto(f"{BASE_URL}/")
+            expect(page.locator(".social a").first).to_be_visible()
+            expect(page.locator("#recent-photos")).to_be_hidden()
+            page.unroute(f"{PHOTO_HOST}/**", unreachable)
+            page.unroute(PHOTO_HOST, unreachable)
+
         def no_js_errors():
             assert not errors, errors
 
@@ -369,6 +411,8 @@ def main():
             ("switching gallery resets photos", switching_gallery_resets_photos),
             ("mobile layout", mobile_layout),
             ("full size link clear of portrait photo", full_size_link_clear_of_portrait_photo),
+            ("home page", home_page),
+            ("home page without photo server", home_page_without_photo_server),
             ("no JS errors", no_js_errors),
         ]:
             check(name, fn)

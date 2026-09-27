@@ -37,3 +37,55 @@ html, body {
     color: #fbf1c7;
 }
 
+.intro p {
+    max-width: 40em;
+    line-height: 1.5;
+}
+
+.home-section h2 {
+    font-size: 1.1em;
+    color: #d5c4a1;
+    border-bottom: 1px solid #504945;
+    padding-bottom: 0.25em;
+}
+
+.social {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em 1.5em;
+}
+
+.social a {
+    color: #83a598;
+}
+
+.social .handle {
+    color: #a89984;
+}
+
+.photo-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+
+.photo-strip a {
+    display: block;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #32302f;
+}
+
+.photo-strip img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.photo-strip a:hover img {
+    transform: scale(1.04);
+}
