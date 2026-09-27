@@ -320,7 +320,7 @@ function showLightboxPhoto(index) {
     lightboxOriginal.hidden = !photo.originalUrl;
     lightboxOriginal.href = photo.originalUrl || '';
     lightboxOriginal.textContent = photo.originalSize
-        ? `Full size (${photo.originalSize})` : 'Full size';
+        ? `Download full size (${photo.originalSize})` : 'Download full size';
 
     // Preload neighbours so scrolling feels instant
     [lightboxIndex - 1, lightboxIndex + 1].forEach(i => {
