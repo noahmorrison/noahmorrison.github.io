@@ -63,6 +63,8 @@ async function loadGallery(dir, categoryName) {
     const gallery = document.createElement('div');
     gallery.className = 'photo-gallery';
 
+    lightboxPhotos = [];
+
     for (const photo of fullPhotos) {
         const item = document.createElement('div');
         item.className = 'photo-item';
@@ -80,8 +82,11 @@ async function loadGallery(dir, categoryName) {
         img.src = url;
         img.alt = `${categoryName} photo`;
 
+        const index = lightboxPhotos.length;
+        lightboxPhotos.push({ url: fullUrl, alt: `${categoryName} photo` });
+
         item.addEventListener('click', () => {
-            openLightbox(fullUrl, `${categoryName} photo`);
+            openLightbox(index);
         });
 
         item.appendChild(img);
@@ -125,14 +130,23 @@ async function loadGalleries() {
 }
 
 let lightboxOverlay, lightboxImg;
+let lightboxPhotos = [];
+let lightboxIndex = 0;
+
+function isLightboxOpen() {
+    return lightboxOverlay.classList.contains('active');
+}
 
 function initLightbox() {
     lightboxOverlay = document.getElementById('lightbox-overlay');
     lightboxImg = document.getElementById('lightbox-img');
     const closeBtn = document.getElementById('lightbox-close');
+    const prevBtn = document.getElementById('lightbox-prev');
+    const nextBtn = document.getElementById('lightbox-next');
 
     const close = () => {
         lightboxOverlay.classList.remove('visible');
+        document.body.classList.remove('lightbox-open');
         setTimeout(() => {
             lightboxOverlay.classList.remove('active');
             lightboxImg.src = '';
@@ -140,18 +154,73 @@ function initLightbox() {
     };
 
     lightboxOverlay.addEventListener('click', (e) => {
-        if (e.target !== lightboxImg) close();
+        if (e.target === lightboxOverlay) close();
     });
     closeBtn.addEventListener('click', close);
+    prevBtn.addEventListener('click', () => stepLightbox(-1));
+    nextBtn.addEventListener('click', () => stepLightbox(1));
+
     document.addEventListener('keydown', (e) => {
+        if (!isLightboxOpen()) return;
         if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') stepLightbox(-1);
+        else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') stepLightbox(1);
+        else return;
+        e.preventDefault();
+    });
+
+    // Mouse wheel / trackpad: one photo per gesture
+    let wheelLocked = false;
+    lightboxOverlay.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        if (wheelLocked || Math.abs(delta) < 10) return;
+        wheelLocked = true;
+        setTimeout(() => { wheelLocked = false; }, 350);
+        stepLightbox(delta > 0 ? 1 : -1);
+    }, { passive: false });
+
+    // Touch swipe
+    let touchX = null, touchY = null;
+    lightboxOverlay.addEventListener('touchstart', (e) => {
+        touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
+    }, { passive: true });
+    lightboxOverlay.addEventListener('touchend', (e) => {
+        if (touchX === null) return;
+        const dx = e.changedTouches[0].clientX - touchX;
+        const dy = e.changedTouches[0].clientY - touchY;
+        touchX = touchY = null;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+            stepLightbox(dx < 0 ? 1 : -1);
+        }
     });
 }
 
-function openLightbox(url, alt) {
-    lightboxImg.src = url;
-    lightboxImg.alt = alt;
+function showLightboxPhoto(index) {
+    const count = lightboxPhotos.length;
+    lightboxIndex = (index + count) % count;
+    const photo = lightboxPhotos[lightboxIndex];
+    lightboxImg.src = photo.url;
+    lightboxImg.alt = photo.alt;
+
+    // Preload neighbours so scrolling feels instant
+    [lightboxIndex - 1, lightboxIndex + 1].forEach(i => {
+        new Image().src = lightboxPhotos[(i + count) % count].url;
+    });
+
+    lightboxOverlay.classList.toggle('single', count < 2);
+}
+
+function stepLightbox(direction) {
+    if (lightboxPhotos.length < 2) return;
+    showLightboxPhoto(lightboxIndex + direction);
+}
+
+function openLightbox(index) {
+    showLightboxPhoto(index);
     lightboxOverlay.classList.add('active');
+    document.body.classList.add('lightbox-open');
     void lightboxOverlay.offsetWidth;
     lightboxOverlay.classList.add('visible');
 }
