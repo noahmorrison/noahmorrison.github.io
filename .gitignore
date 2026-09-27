@@ -3,3 +3,6 @@ _site
 .jekyll-cache
 .jekyll-metadata
 vendor
+test-results
+Gemfile.lock
+/tests/__pycache__

@@ -10,3 +10,12 @@ github_username:  noahmorrison
 theme: minima
 plugins:
   - jekyll-feed
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - node_modules
+  - compose.yaml
+  - tests
+  - test-results

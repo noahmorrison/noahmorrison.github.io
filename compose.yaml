@@ -1,0 +1,40 @@
+# Local development:
+#   docker compose up site              serve the site at http://localhost:4000
+#   docker compose run --rm test        run browser tests against it
+
+services:
+  site:
+    image: ruby:3.3
+    working_dir: /srv/jekyll
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      HOME: /tmp
+      BUNDLE_PATH: /srv/jekyll/vendor/bundle
+    volumes:
+      - .:/srv/jekyll
+    ports:
+      - "${SITE_PORT:-4000}:4000"
+    command: >
+      sh -c "bundle install --quiet &&
+             bundle exec jekyll serve --host 0.0.0.0 --port 4000 --destination /tmp/_site"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:4000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+
+  test:
+    image: mcr.microsoft.com/playwright/python:v1.49.0-noble
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      HOME: /tmp
+      BASE_URL: http://site:4000
+    volumes:
+      - .:/work
+    depends_on:
+      site:
+        condition: service_healthy
+    command: >
+      sh -c "pip install --quiet --user --break-system-packages playwright==1.49.0 &&
+             python tests/otos_test.py"
