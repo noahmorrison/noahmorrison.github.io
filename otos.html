@@ -4,8 +4,20 @@ title: "ph/otos"
 permalink: /otos
 ---
 
+<div id="gallery-bar" class="gallery-bar">
+    <button id="gallery-switcher" class="gallery-switcher" aria-haspopup="true" aria-expanded="false" aria-controls="gallery-menu">
+        <span id="gallery-title" class="gallery-title"></span>
+        <span class="gallery-caret" aria-hidden="true">&#9662;</span>
+    </button>
+    <span id="gallery-count" class="gallery-count"></span>
+    <div id="gallery-menu" class="gallery-menu" hidden>
+        <input id="gallery-filter" class="gallery-filter" type="search" placeholder="Find a gallery&hellip;" aria-label="Find a gallery" />
+        <nav id="gallery-nav" class="gallery-nav"></nav>
+    </div>
+</div>
+
 <div id="galleries"></div>
-<nav id="gallery-nav"></nav>
+<nav id="gallery-pager" class="gallery-pager"></nav>
 
 <div id="lightbox-overlay" class="lightbox-overlay">
     <button id="lightbox-close" class="lightbox-close" aria-label="Close">&times;</button>

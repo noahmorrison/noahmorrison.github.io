@@ -25,22 +25,116 @@ function dirForSlug(slug) {
     return idx === -1 ? null : directories[idx];
 }
 
+// Only offer a filter box once there are too many galleries to scan at a glance
+const FILTER_THRESHOLD = 8;
+
 function renderNav() {
     const nav = document.getElementById('gallery-nav');
     nav.innerHTML = '';
 
-    categoryNames.forEach((name, i) => {
+    categoryNames.forEach(name => {
         const link = document.createElement('a');
         link.href = `#${slugify(name)}`;
         link.textContent = name;
         link.className = 'gallery-nav-link';
         nav.appendChild(link);
     });
+
+    document.getElementById('gallery-filter').hidden = categoryNames.length <= FILTER_THRESHOLD;
 }
 
 function setActiveNavLink(slug) {
     document.querySelectorAll('.gallery-nav-link').forEach(link => {
-        link.classList.toggle('active', link.getAttribute('href') === `#${slug}`);
+        const active = link.getAttribute('href') === `#${slug}`;
+        link.classList.toggle('active', active);
+        if (active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+    });
+}
+
+function pagerLink(index, className, label) {
+    const name = categoryNames[index];
+    const link = document.createElement('a');
+    link.href = `#${slugify(name)}`;
+    link.className = `gallery-pager-link ${className}`;
+    link.innerHTML = `<span class="gallery-pager-label">${label}</span>`;
+    const title = document.createElement('span');
+    title.className = 'gallery-pager-name';
+    title.textContent = name;
+    link.appendChild(title);
+    return link;
+}
+
+function renderHeader(index) {
+    const count = categoryNames.length;
+    document.getElementById('gallery-title').textContent = categoryNames[index];
+    document.getElementById('gallery-count').textContent = count > 1 ? `${index + 1} of ${count} galleries` : '';
+
+    const pager = document.getElementById('gallery-pager');
+    pager.innerHTML = '';
+    if (index > 0) pager.appendChild(pagerLink(index - 1, 'prev', '\u2039 Previous'));
+    if (index < count - 1) pager.appendChild(pagerLink(index + 1, 'next', 'Next \u203a'));
+}
+
+let galleryMenu, gallerySwitcher, galleryFilter;
+
+function isMenuOpen() {
+    return !galleryMenu.hidden;
+}
+
+function openMenu() {
+    galleryMenu.hidden = false;
+    gallerySwitcher.setAttribute('aria-expanded', 'true');
+    galleryFilter.value = '';
+    filterMenu();
+    const active = galleryMenu.querySelector('.gallery-nav-link.active');
+    if (active) active.scrollIntoView({ block: 'nearest' });
+    (galleryFilter.hidden ? active || galleryMenu.querySelector('a') : galleryFilter).focus();
+}
+
+function closeMenu() {
+    galleryMenu.hidden = true;
+    gallerySwitcher.setAttribute('aria-expanded', 'false');
+}
+
+function filterMenu() {
+    const query = galleryFilter.value.trim().toLowerCase();
+    document.querySelectorAll('.gallery-nav-link').forEach(link => {
+        link.hidden = !link.textContent.toLowerCase().includes(query);
+    });
+}
+
+function initMenu() {
+    galleryMenu = document.getElementById('gallery-menu');
+    gallerySwitcher = document.getElementById('gallery-switcher');
+    galleryFilter = document.getElementById('gallery-filter');
+
+    gallerySwitcher.addEventListener('click', () => {
+        if (isMenuOpen()) closeMenu();
+        else openMenu();
+    });
+
+    galleryFilter.addEventListener('input', filterMenu);
+    galleryFilter.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        const match = galleryMenu.querySelector('.gallery-nav-link:not([hidden])');
+        if (match) match.click();
+    });
+
+    // Picking a gallery changes the hash; close the menu either way
+    galleryMenu.addEventListener('click', (e) => {
+        if (e.target.closest('.gallery-nav-link')) closeMenu();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (isMenuOpen() && !e.target.closest('#gallery-bar')) closeMenu();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (isMenuOpen() && e.key === 'Escape') {
+            closeMenu();
+            gallerySwitcher.focus();
+        }
     });
 }
 
@@ -58,7 +152,6 @@ async function loadGallery(dir, categoryName) {
 
     const section = document.createElement('div');
     section.className = 'photo-category';
-    section.innerHTML = `<h2>${categoryName}</h2>`;
 
     const gallery = document.createElement('div');
     gallery.className = 'photo-gallery';
@@ -112,13 +205,17 @@ async function showFromHash() {
 
     if (!dir) return;
 
-    const categoryName = categoryNames[directories.indexOf(dir)];
+    const index = directories.indexOf(dir);
+    const categoryName = categoryNames[index];
     setActiveNavLink(slug);
+    renderHeader(index);
+    window.scrollTo(0, 0);
     await loadGallery(dir, categoryName);
 }
 
 async function loadGalleries() {
     initLightbox();
+    initMenu();
 
     directories = (await fetchDirectory('/')).reverse();
     categoryNames = directories.map(dir => decodeURI(dir.replace(/\/$/, '')));
