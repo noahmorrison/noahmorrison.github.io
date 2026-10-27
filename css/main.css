@@ -33,7 +33,18 @@ html, body {
 .header a {
     padding-right: 0.25in;
     text-decoration: none;
-    color: #ebdbb2;
+}
+
+/* a link, not a button: link blue, a dim underline that lights up on hover */
+.header a.nav {
+    color: #83a598;
+    text-decoration: underline 2px #665c54;
+    text-underline-offset: 0.25em;
+}
+
+.header a.nav:hover {
+    color: #8ec07c;
+    text-decoration-color: currentColor;
 }
 
 .intro p {
