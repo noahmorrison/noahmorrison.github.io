@@ -3,7 +3,7 @@ html, body {
     padding: 0;
     height: 100%;
     background: #1d2021;
-    color: #fbf1c7;
+    color: #ebdbb2;
 }
 
 .content {
@@ -23,10 +23,6 @@ html, body {
     height: 0.5in;
 }
 
-.logo:not(.festive) {
-    filter: invert(87%) sepia(18%) saturate(456%) hue-rotate(349deg) brightness(109%) contrast(97%);
-}
-
 .header {
     display: block;
     height: 0.5in;
@@ -37,7 +33,7 @@ html, body {
 .header a {
     padding-right: 0.25in;
     text-decoration: none;
-    color: #fbf1c7;
+    color: #ebdbb2;
 }
 
 .intro p {
