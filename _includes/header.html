@@ -3,17 +3,14 @@
         <img class="logo" src="/assets/logo.svg" alt="Noah Morrison, home" />
     </a>
 
-    <a class="nav" href="/otos">
-        ph/otos
-    </a>
+    <span class="divider"></span>
+    <a class="nav" href="/otos">ph/otos</a>
 </span>
 
-<style>
-    a.active {
-        font-weight: bold;
-    }
-</style>
-
 <script>
-    [...document.getElementsByTagName("a")].forEach(a => { if (a == document.URL) { a.classList.add("active"); } })
+    // the current page's link (the logo on the home page) gets the bar; ignores ?query and #hash
+    const page = path => path.replace(/\.html$/, "");
+    document.querySelectorAll(".header a").forEach(a => {
+        if (page(a.pathname) == page(location.pathname)) a.classList.add("active");
+    });
 </script>

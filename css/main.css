@@ -23,28 +23,52 @@ html, body {
     height: 0.5in;
 }
 
+/* same 0.7in tall as before; padding moved into the links so their bars sit on the edge */
 .header {
-    display: block;
-    height: 0.5in;
-    padding: 0.1in;
+    display: flex;
+    gap: 0.15in;
+    height: 0.7in;
+    padding: 0 0.1in;
     background: #32302f;
 }
 
+/* the current page's bar: orange; other nav links a dim one, yellow on hover */
 .header a {
-    padding-right: 0.25in;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
     text-decoration: none;
 }
 
-/* a link, not a button: link blue, a dim underline that lights up on hover */
+.header a.active {
+    border-bottom-color: #fe8019;
+}
+
+.header a.nav:not(.active) {
+    border-bottom-color: #665c54;
+}
+
+.header a.nav:not(.active):hover {
+    border-bottom-color: #fabd2f;
+}
+
+.header .divider {
+    width: 1px;
+    margin: 0.2in 0;
+    background: #665c54;
+}
+
 .header a.nav {
-    color: #83a598;
-    text-decoration: underline 2px #665c54;
-    text-underline-offset: 0.25em;
+    color: #ebdbb2;
+    font: 600 13px sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
 }
 
 .header a.nav:hover {
-    color: #8ec07c;
-    text-decoration-color: currentColor;
+    color: #fabd2f;
 }
 
 .intro p {
