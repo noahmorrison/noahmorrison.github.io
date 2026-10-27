@@ -20,7 +20,10 @@ html, body {
 }
 
 .logo {
-    width: 1in;
+    height: 0.5in;
+}
+
+.logo:not(.festive) {
     filter: invert(87%) sepia(18%) saturate(456%) hue-rotate(349deg) brightness(109%) contrast(97%);
 }
 
