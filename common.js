@@ -1,4 +1,4 @@
-const baseUrl = 'https://photos.norwich.morrison.ph';
+const baseUrl = 'https://photos.063604913.xyz';
 
 // Returns the listing's entries as { href, size }; nginx's autoindex prints each
 // file's size (e.g. "16M") after its link
